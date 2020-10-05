@@ -24,19 +24,6 @@ export default function LinkedList() {
         return first;
     }
 
-    // this.removeTail = function () {
-    //     if (!head) return;
-    //     const last = tail.item;
-    //     if (size == 1) {
-    //         head = null;
-    //         tail = null;
-    //         return last;
-    //     } else if (size > 1) {
-    //         while(head.next)
-    //     }
-
-    // }
-
     this.getSize = function () {
         return size;
     }
