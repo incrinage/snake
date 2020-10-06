@@ -5,9 +5,10 @@ export default function Snake(x, y) {
     this.x = x;
     this.y = y;
     this.alive = true;
+    this.direction = 'ArrowRight';
 
     //default body 
-    let body = [new Block(this.x, this.y, 'snake', 'green'), new Block(this.x - 20, this.y - 20, 'snake', 'green')];
+    let body = [new Block(this.x, this.y, 'snake', 'green')];
 
     //draw snake blocks
     this.draw = function () {
@@ -72,13 +73,39 @@ export default function Snake(x, y) {
 
     this.moveDown = function () {
         const tail = body.pop();
-        this.prevX = this.x;
-        this.prevY = this.y;
         this.y += this.v;
         tail.x = this.x;
         tail.y = this.y;
         body = [tail].concat(body);
     };
+
+    this.setDirection = function (dir) {
+        if (this.direction == 'ArrowLeft' && dir == 'ArrowRight' ||
+            this.direction == 'ArrowRight' && dir == 'ArrowLeft' ||
+            this.direction == 'ArrowUp' && dir == 'ArrowDown' ||
+            this.direction == 'ArrowDown' && dir == 'ArrowUp') {
+            return;
+        }
+
+        this.direction = dir;
+    }
+
+    this.move = function () {
+        switch (this.direction) {
+            case 'ArrowLeft':
+                this.moveLeft();
+                break;
+            case 'ArrowRight':
+                this.moveRight();
+                break;
+            case 'ArrowUp':
+                this.moveUp();
+                break;
+            case 'ArrowDown':
+                this.moveDown();
+                break;
+        }
+    }
 
 
     this.draw = this.draw.bind(this);

@@ -16,9 +16,8 @@ export default function InputPublisher(event, subscriptions) {
         });
     };
 
-
     this.getNext = function(){
-       return queue.remove();
+       return queue.removeHead();
     }
 
     this.isEmpty  = function(){

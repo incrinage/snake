@@ -16,10 +16,15 @@ export default function LinkedList() {
         size++;
     }
 
-    this.remove = function () {
+    this.removeHead = function () {
         if (!head) return;
+      
         const first = head.item;
         head = head.next;
+        if(size == 1) {
+         head = undefined;
+         tail = undefined;   
+        }
         size--;
         return first;
     }

@@ -3,54 +3,80 @@ import InputPublisher from './Keyboard.js';
 import Snake from './Snake';
 import { ctx, canvas } from './index';
 
-//starting food
-//last pressed direction for snake to move
-//TODO put everything into its own file
-//TODO keep track of tiles the snake is on and tiles that are free for rewind feature
+
+//TODO make constant class for direction, canvas width and height, and blocks
+//TODO spawn food where the snake isn't
+//TODO restart and retry button
+
+//nice to have
 //TODO add width and height as params to block to control proper spacing of snake blocks
 //TODO create constant for desired block size so that random coordinates and block size scales 
-//nice to have
 //TODO smooth animation/movement
-//TODO rewind snake upon collision
 //TODO consider making the blocks smaller? 
+
 const snake = new Snake(100, 100);
 let lastTime = 0;
 function loop(time) {
     if (time - lastTime > 80) {
         update();
-        lastTime = time;
         render();
+        lastTime = time;
     }
     requestAnimationFrame(loop);
 }
+
+
+const inputPublisher = new InputPublisher('keydown', ['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp']);
+
 function update() {
+    const dir = inputPublisher.getNext() || snake.direction;
 
-    checkIfSnakeHitBoundary();
+    if (snake.isAlive()) {
 
-    checkIfSnakeAteSelf();
+        boundaryCheck(snake.direction, snake.x, snake.y);
 
-    spawnFoodIfNone();
+        checkIfSnakeAteSelf();
 
-    checkIfAtFood();
+        spawnFoodIfNone();
 
-    moveSnake();
+        checkIfAteFood();
+    }
+
+    if (snake.isAlive()) {
+        snake.setDirection(dir);
+        snake.move();
+    }
+
 }
+
 function render() {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.fillStyle = 'black';
     ctx.font = "15px Arial";
     ctx.fillText("food: " + foodCount, 20, 20);
+
+    ctx.fillStyle = 'black';
+    ctx.font = "15px Arial";
+    if (!snake.isAlive()) {
+
+        ctx.fillText("game over! ", 20, 80);
+    }
+
     food.forEach((f) => {
         f.draw();
     });
     snake.draw();
     ctx.strokeStyle = 'black';
     ctx.strokeRect(100, 0, 500, 600);
+
 }
-let food = [new Block(100, 0, 'food', 'red')];
-let foodCount = 0;
-function checkIfSnakeHitBoundary() {
-    if (snake.x < 100 || snake.x + 20 > 600 || snake.y + 20 > 600 || snake.y < 0) {
+
+function boundaryCheck(direction, x, y) {
+    if (direction == 'ArrowRight' && x + 20 == 600 ||
+        direction == "ArrowLeft" && x == 100 ||
+        direction == "ArrowUp" && y == 0 ||
+        direction == "ArrowDown" && y + 20 == 600
+    ) {
         snake.setAlive(false);
     }
 }
@@ -61,6 +87,9 @@ function checkIfSnakeAteSelf() {
         }
     }
 }
+
+let food = [];
+let foodCount = 0;
 function spawnFoodIfNone() {
     if (food.length == 0) {
         let randomX = Math.random() * (canvas.width - 100 - 20) + 100;
@@ -72,7 +101,7 @@ function spawnFoodIfNone() {
         food.push(new Block(randomX, randomY, 'food', 'red'));
     }
 }
-function checkIfAtFood() {
+function checkIfAteFood() {
     for (let i = 0; i < food.length; i++) {
         if (food[i].x == snake.x && food[i].y == snake.y) {
             snake.eat(food[i]);
@@ -81,52 +110,7 @@ function checkIfAtFood() {
         }
     }
 }
-let lastPressedDirection = 'ArrowRight';
-let previouslyPressed = lastPressedDirection;
-const inputPublisher = new InputPublisher('keydown', ['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp']);
-function moveSnake() {
-    lastPressedDirection = inputPublisher.getNext() || lastPressedDirection;
-    if (snake.isAlive()) {
-        switch (lastPressedDirection) {
-            case 'ArrowLeft':
-                if (previouslyPressed == 'ArrowRight') {
-                    lastPressedDirection = previouslyPressed;
-                    snake.moveRight();
-                } else {
-                    snake.moveLeft();
-                }
-                break;
-            case 'ArrowRight':
-                if (previouslyPressed == 'ArrowLeft') {
-                    lastPressedDirection = previouslyPressed;
-                    snake.moveLeft();
-                } else {
-                    snake.moveRight();
-                }
-                break;
-            case 'ArrowUp':
-                if (previouslyPressed == 'ArrowDown') {
-                    lastPressedDirection = previouslyPressed;
-                    snake.moveDown();
-                } else {
-                    snake.moveUp();
-                }
-                break;
-            case 'ArrowDown':
-                if (previouslyPressed == 'ArrowUp') {
-                    lastPressedDirection = previouslyPressed;
-                    snake.moveUp();
-                } else {
-                    snake.moveDown();
-                }
-                break;
-            default:
-            //snake stopped moving
-        }
-    }
 
-    previouslyPressed = lastPressedDirection;
-}
 export default {
     start: function () {
         requestAnimationFrame(loop);
