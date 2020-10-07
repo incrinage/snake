@@ -1,18 +1,20 @@
-import Block from "./Block";
+import Block, { FOOD_BLOCK, SNAKE_BLOCK } from "./Block";
+import { GREEN } from "./Color";
+import { DOWN, LEFT, RIGHT, UP } from "./Direction";
 
 export default function Snake(x, y) {
     this.v = 20; //velocity
     this.x = x;
     this.y = y;
     this.alive = true;
-    this.direction = 'ArrowRight';
+    this.direction = '';
 
     //default body 
-    let body = [new Block(this.x, this.y, 'snake', 'green')];
+    this.body = [new Block(this.x, this.y, SNAKE_BLOCK, GREEN)];
 
     //draw snake blocks
     this.draw = function () {
-        body.forEach((block) => block.draw());
+        this.body.forEach((block) => block.draw());
     };
 
     //eat block
@@ -20,13 +22,13 @@ export default function Snake(x, y) {
         switch (block.type) {
             //eat:
             //food snake grows
-            case 'food':
-                block.color = 'green';
-                block.type = 'snake';
-                body.push(block);
+            case FOOD_BLOCK:
+                block.color = GREEN;
+                block.type = SNAKE_BLOCK;
+                this.body.push(block);
                 break;
             //snake dies if it eats self (assumed to be the only snake)
-            case 'snake':
+            case SNAKE_BLOCK:
                 this.setAlive(false);
                 break;
             default:
@@ -39,51 +41,57 @@ export default function Snake(x, y) {
         this.alive = alive;
     };
 
-    this.getBody = function () {
-        return body;
-    };
+
 
     this.isAlive = function () {
         return this.alive;
     };
 
     this.moveLeft = function () {
-        const tail = body.pop();
+        const tail = this.body.pop();
+        const tailPos = { x: tail.x, y: tail.y };
         this.x -= this.v;
         tail.x = this.x;
         tail.y = this.y;
-        body = [tail].concat(body);
+        this.body = [tail].concat(this.body);
+        return tailPos;
     };
     this.moveRight = function () {
-        const tail = body.pop();
+        const tail = this.body.pop();
+        const tailPos = { x: tail.x, y: tail.y };
         this.x += this.v;
         tail.x = this.x;
         tail.y = this.y;
-        body = [tail].concat(body);
+        this.body = [tail].concat(this.body);
+        return tailPos;
 
     };
     this.moveUp = function () {
-        const tail = body.pop();
+        const tail = this.body.pop();
+        const tailPos = { x: tail.x, y: tail.y };
         this.y -= this.v;
         tail.x = this.x;
         tail.y = this.y;
-        body = [tail].concat(body);
-
+        this.body = [tail].concat(this.body);
+        return tailPos;
     };
 
     this.moveDown = function () {
-        const tail = body.pop();
+        const tail = this.body.pop();
+        const tailPos = { x: tail.x, y: tail.y };
         this.y += this.v;
         tail.x = this.x;
         tail.y = this.y;
-        body = [tail].concat(body);
+        this.body = [tail].concat(this.body);
+        return tailPos;
     };
 
     this.setDirection = function (dir) {
-        if (this.direction == 'ArrowLeft' && dir == 'ArrowRight' ||
-            this.direction == 'ArrowRight' && dir == 'ArrowLeft' ||
-            this.direction == 'ArrowUp' && dir == 'ArrowDown' ||
-            this.direction == 'ArrowDown' && dir == 'ArrowUp') {
+        if (!dir) return;
+        if (this.direction == LEFT && dir == RIGHT ||
+            this.direction == RIGHT && dir == LEFT ||
+            this.direction == UP && dir == DOWN ||
+            this.direction == DOWN && dir == UP) {
             return;
         }
 
@@ -92,19 +100,16 @@ export default function Snake(x, y) {
 
     this.move = function () {
         switch (this.direction) {
-            case 'ArrowLeft':
-                this.moveLeft();
-                break;
-            case 'ArrowRight':
-                this.moveRight();
-                break;
-            case 'ArrowUp':
-                this.moveUp();
-                break;
-            case 'ArrowDown':
-                this.moveDown();
-                break;
+            case LEFT:
+                return this.moveLeft();
+            case RIGHT:
+                return this.moveRight();
+            case UP:
+                return this.moveUp();
+            case DOWN:
+                return this.moveDown();
         }
+        return undefined;
     }
 
 
@@ -115,5 +120,4 @@ export default function Snake(x, y) {
     this.moveDown = this.moveDown.bind(this);
     this.isAlive = this.isAlive.bind(this);
     this.setAlive = this.setAlive.bind(this);
-    this.getBody = this.getBody.bind(this);
 }
