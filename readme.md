@@ -12,8 +12,8 @@ parcel index.html
 
 ## Usage
 
-Move with the directional pad on the keyboard
-Pause the game with the space bar
+* Move with the directional pad on the keyboard
+* Pause the game with the space bar
 
 
 
