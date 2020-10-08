@@ -1,6 +1,6 @@
 import Block, { FOOD_BLOCK, SNAKE_BLOCK } from "./Block";
 import { GREEN } from "./Color";
-import { DOWN, LEFT, RIGHT, UP } from "./Direction";
+import { DOWN, LEFT, RIGHT, UP } from "./KeyEvent";
 
 export default function Snake(x, y) {
     this.v = 20; //velocity

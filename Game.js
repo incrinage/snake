@@ -2,7 +2,7 @@ import Block, { FOOD_BLOCK } from './Block';
 import InputPublisher from './Keyboard.js';
 import Snake from './Snake';
 import { ctx } from './index';
-import { DOWN, LEFT, RIGHT, UP } from './Direction';
+import { DOWN, LEFT, RIGHT, SPACE_BAR, UP } from './KeyEvent';
 import { BLACK, RED } from './Color';
 import {
     BOT_Y_BOUNDARY, CANVAS_HEIGHT, CANVAS_WIDTH, BLOCK_HEIGHT,
@@ -11,28 +11,31 @@ import {
 } from './GameContext';
 
 
-//TODO make a SnakeBlock that decorates an existing block
-//TODO add eyes to snake direction
-//TODO restart and retry button
-//TODO generalize premptive block check
-
-//nice to have
-//TODO pass game context to game class and make everything scale
-//TODO pass canvas 2d context
-//TODO translate coordinates based on offsets/boundary locations
-//TODO add width and height as params to block to control proper spacing of snake blocks
-//TODO smooth animation/movement
-//TODO consider making the blocks smaller? 
-//TODO have the available space map be the game grid and render it updating
-
-
-const snake = new Snake(100, 100);
+let snake = getSnake();
 let lastTime = 0;
+const spacepbulisher = new InputPublisher('keydown', [SPACE_BAR]);
+let paused = false;
 function loop(time) {
     if (time - lastTime > REFRESH_RATE_MILLIS) {
-        update();
-        render();
-        lastTime = time;
+
+        if(spacepbulisher.getNext() === SPACE_BAR){
+            paused = !paused;
+            inputPublisher.getNext();//clear direction queue
+        }
+        
+        if (!paused) {
+            update();
+            render();
+            if (!snake.isAlive()) {
+                const play = confirm('play again?');
+                if (play) {
+                    restart();
+                }
+            }
+            lastTime = time;
+        }
+
+
     }
     requestAnimationFrame(loop);
 }
@@ -84,10 +87,18 @@ function update() {
             availableSpace[`${tailPos.x}-${tailPos.y}`] = true;
             delete availableSpace[`${snake.x}-${snake.y}`];
         }
-
-        console.log(availableSpace);
     }
 
+}
+
+function restart() {
+    snake = getSnake(140, 240);
+    food = [];
+    foodCount = 0;
+}
+
+function getSnake() {
+    return new Snake(140, 240);
 }
 
 function render() {
@@ -95,13 +106,6 @@ function render() {
     ctx.fillStyle = BLACK;
     ctx.font = "15px Arial";
     ctx.fillText("food: " + foodCount, 20, 20);
-
-    ctx.fillStyle = BLACK;
-    ctx.font = "15px Arial";
-    if (!snake.isAlive()) {
-
-        ctx.fillText("game over! ", 20, 80);
-    }
 
     food.forEach((f) => {
         f.draw();
