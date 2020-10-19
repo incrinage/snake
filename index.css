@@ -1,7 +1,48 @@
 #canvas {
-    /* border: 1px solid black; */
     margin-left: auto;
     margin-right: auto;
+}
+
+#score-board {
+    padding-top: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+#score {
+    width: 30px;
+    height: 30px;
+    display: inline-block;
+    font-size: 30px;
+}
+
+#food {
+    width: 20px;
+    height: 20px;
+    border: 1px solid black;
+    display: inline-block;
+    background-color: red;
+}
+
+#play-modal {
+    width: 300px;
+    height: 200px;
+    background-color: blue;
+    position: absolute;
+    top: 30%;
+    left: 43%;
+    visibility: visible;
+}
+
+#play-btn {
+    left: 40%;
+    top: 40%;
+    position: absolute;
+    font-size: larger;
+    outline: none;
+    border: none;
+    background-color: green;
 }
 
 #canvas-container {

@@ -5,8 +5,18 @@
 </head>
 
 <body>
-    <div id="canvas-container">
-        <canvas id="canvas"></canvas>
+    <div id="game-container">
+        <div id="score-board">
+            <div id="food"> </div>
+            <div id="score"></span>
+            </div>
+            <div id="canvas-container">
+                <canvas id="canvas"></canvas>
+            </div>
+        </div>
+        <div id="play-modal">
+            <button id="play-btn" onclick="restart()">Play</button>
+        </div>
     </div>
 </body>
 <script src="./index.js"></script>

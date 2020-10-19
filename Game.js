@@ -7,8 +7,29 @@ import { BLACK, RED } from './Color';
 import {
     BOT_Y_BOUNDARY, CANVAS_HEIGHT, CANVAS_WIDTH, BLOCK_HEIGHT,
     BLOCK_WIDTH, GAME_SCREEN_HEIGHT, GAME_SCREEN_WIDTH, LEFT_X_BOUNDARY,
-    REFRESH_RATE_MILLIS, RIGHT_X_BOUNDARY, TOP_Y_BOUNDARY
+    REFRESH_RATE_MILLIS, RIGHT_X_BOUNDARY, TOP_Y_BOUNDARY, START_X, START_Y
 } from './GameContext';
+
+
+
+//TODO generic move snake function
+
+//nice to have	
+//TODO add buffer before hitting wall
+//TODO generalize premptive block check	
+//TODO have the available space map be the game grid and render it updating
+
+const playModalBtn = document.getElementById('play-btn');
+const playModal = document.getElementById("play-modal");
+
+
+playModalBtn.onclick = () => {
+    if (!snake.alive) {
+        restart();
+    }
+    playModal.style.visibility = "hidden";
+};
+
 
 
 let snake = getSnake();
@@ -18,19 +39,16 @@ let paused = false;
 function loop(time) {
     if (time - lastTime > REFRESH_RATE_MILLIS) {
 
-        if(spacepbulisher.getNext() === SPACE_BAR){
+        if (spacepbulisher.getNext() === SPACE_BAR) {
             paused = !paused;
             inputPublisher.getNext();//clear direction queue
         }
-        
+
         if (!paused) {
             update();
             render();
-            if (!snake.isAlive()) {
-                const play = confirm('play again?');
-                if (play) {
-                    restart();
-                }
+            if (!snake.alive) {
+                playModal.style.visibility = "visible";
             }
             lastTime = time;
         }
@@ -62,7 +80,7 @@ const inputPublisher = new InputPublisher('keydown', [LEFT, RIGHT, DOWN, UP]);
 function update() {
     const dir = inputPublisher.getNext();
 
-    if (snake.isAlive()) {
+    if (snake.alive) {
 
         //need to set direction of the snake first or will die 
         //on next frame if then after the boundary check
@@ -79,7 +97,7 @@ function update() {
 
     //second check for alive snake because previous checks could kill snake
     //and the snake shouldn't move if its dead
-    if (snake.isAlive()) {
+    if (snake.alive) {
 
         const tailPos = snake.move();
 
@@ -92,29 +110,26 @@ function update() {
 }
 
 function restart() {
-    snake = getSnake(140, 240);
+    snake = getSnake();
     food = [];
     foodCount = 0;
+    score.innerText = foodCount;
 }
 
 function getSnake() {
-    return new Snake(140, 240);
+    return new Snake(START_X, START_Y);
 }
 
 function render() {
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    ctx.fillStyle = BLACK;
-    ctx.font = "15px Arial";
-    ctx.fillText("food: " + foodCount, 20, 20);
-
     food.forEach((f) => {
         f.draw();
-    });
+    });    
     snake.draw();
     ctx.strokeStyle = BLACK;
-    ctx.strokeRect(LEFT_X_BOUNDARY, 0, GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT);
-
+    ctx.strokeRect(LEFT_X_BOUNDARY + 0.5, TOP_Y_BOUNDARY + 0.5, GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT);
 }
+
 
 function boundaryCheck(direction, x, y) {
     if (direction == RIGHT && x + BLOCK_WIDTH == RIGHT_X_BOUNDARY ||
@@ -122,7 +137,7 @@ function boundaryCheck(direction, x, y) {
         direction == UP && y == 0 ||
         direction == DOWN && y + BLOCK_WIDTH == BOT_Y_BOUNDARY
     ) {
-        snake.setAlive(false);
+        snake.alive = false;
     }
 }
 function checkIfSnakeAteSelf(dir) {
@@ -132,13 +147,21 @@ function checkIfSnakeAteSelf(dir) {
             dir == UP && snake.y - BLOCK_WIDTH == snake.body[i].y && snake.x == snake.body[i].x ||
             dir == DOWN && snake.y + BLOCK_WIDTH == snake.body[i].y && snake.x == snake.body[i].x
         ) {
-            snake.setAlive(false);
+            snake.alive = false;
         }
     }
 }
 
 let food = [];
 let foodCount = 0;
+const score = document.getElementById("score");
+score.innerText = foodCount;
+const scoreBoard = document.getElementById("score-board");
+
+scoreBoard.style.width = GAME_SCREEN_WIDTH;
+scoreBoard.style.height = BLOCK_HEIGHT;
+
+
 function spawnFoodIfNone() {
     if (food.length == 0) {
         //get entries
@@ -150,7 +173,7 @@ function spawnFoodIfNone() {
         //delete from availableSpace
         delete availableSpace[`${coordinates[0]}-${coordinates[1]}`];
 
-        food.push(new Block(coordinates[0], coordinates[1], FOOD_BLOCK, RED));
+        food.push(new Block(coordinates[0], coordinates[1], BLOCK_WIDTH, BLOCK_HEIGHT, FOOD_BLOCK, RED));
     }
 }
 
@@ -164,6 +187,7 @@ function checkIfAteFood(dir) {
             snake.eat(food[i]);
             food = food.slice(0, i).concat(food.slice(i + 1));
             foodCount++;
+            score.innerText = foodCount;
         }
     }
 }

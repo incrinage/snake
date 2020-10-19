@@ -7,6 +7,4 @@ import { CANVAS_HEIGHT, CANVAS_WIDTH, LEFT_X_BOUNDARY } from './GameContext.js';
 
 ctx.canvas.width = LEFT_X_BOUNDARY + CANVAS_WIDTH;
 ctx.canvas.height = CANVAS_HEIGHT;
-
-
 Game.start();
