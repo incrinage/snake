@@ -61,7 +61,9 @@ export default function Snake(x, y, w, h) {
     this.direction = '';
 
     //default body 
-    this.body = [new SnakeBlock(this.x, this.y, this.w, this.h, SNAKE_BLOCK, GREEN, RIGHT)];
+    this.body = [new SnakeBlock(this.x , this.y, this.w, this.h, SNAKE_BLOCK, GREEN, RIGHT), 
+        new SnakeBlock(this.x - w, this.y, this.w, this.h, SNAKE_BLOCK, GREEN, RIGHT),
+         new SnakeBlock(this.x - w*2, this.y, this.w, this.h, SNAKE_BLOCK, GREEN, RIGHT) ];
 
     //draw snake blocks
     this.draw = function () {

@@ -1,4 +1,4 @@
-import Block, { FOOD_BLOCK } from './Block';
+import Block, { FOOD_BLOCK, SNAKE_BLOCK } from './Block';
 import InputPublisher from './Keyboard.js';
 import Snake from './Snake';
 import { ctx } from './index';
@@ -117,7 +117,7 @@ function restart() {
 }
 
 function getSnake() {
-    return new Snake(START_X, START_Y);
+    return new Snake(START_X, START_Y, BLOCK_WIDTH, BLOCK_HEIGHT);
 }
 
 function render() {
