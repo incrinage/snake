@@ -4,14 +4,22 @@ import { ctx } from './index';
 //basic entity 
 export default class Block {
 
-    constructor(x, y, w, h, type, color) {
+    constructor(x, y, w, h, color) {
         this.x = x || 0;
         this.y = y || 0;
         this.w = w || 20;
         this.h = h || 20;
-        this.type = type || '';
         this.color = color || BLACK;
     }
+
+    getX(){
+        return this.x;
+    }
+
+    getY(){
+        return this.y;
+    }
+
 
     //draw block
     draw() {

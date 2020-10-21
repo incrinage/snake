@@ -9,10 +9,10 @@ import SnakeTail from "./snake-body-tail.png";
 
 const headSprite = new Sprite(SnakeHead, false);
 const headSpriteAngleMap = {
-    [RIGHT] : 0,
-    [LEFT] : 180,
-    [DOWN] : 90,
-    [UP] : 270
+    [RIGHT]: 0,
+    [LEFT]: 180,
+    [DOWN]: 90,
+    [UP]: 270
 }
 
 const tailSprite = new Sprite(SnakeTail, false);
@@ -23,7 +23,7 @@ const tailSpriteAngleMap = {
     [LEFT]: 180
 };
 
-const  straightSprite = new Sprite(SnakeBodyStraight, false);
+const straightSprite = new Sprite(SnakeBodyStraight, false);
 const straightSpriteAngleMap = {
     [UP]: 90,
     [DOWN]: 270,
@@ -53,87 +53,71 @@ const curvedSpriteAngleMap = {
 
 export default function Snake(x, y, w, h) {
     this.v = 20; //velocity
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
     this.alive = true;
     this.direction = '';
 
     //default body 
-    this.body = [new SnakeBlock(this.x , this.y, this.w, this.h, SNAKE_BLOCK, GREEN, RIGHT), 
-        new SnakeBlock(this.x - w, this.y, this.w, this.h, SNAKE_BLOCK, GREEN, RIGHT),
-         new SnakeBlock(this.x - w*2, this.y, this.w, this.h, SNAKE_BLOCK, GREEN, RIGHT) ];
+    this.body = [
+        new SnakeBlock(x, y, w, h, GREEN, RIGHT),
+        new SnakeBlock(x - w, y, w, h, GREEN, RIGHT),
+        new SnakeBlock(x - w * 2, y, w, h, GREEN, RIGHT)
+    ];
+
+    this.head = this.body[0];
+
+    this.getDirection = function(){
+        return this.direction;
+    }
+
+    this.getX = function(){
+        return this.head.x;
+    }
+
+    this.getY = function(){
+        return this.head.y;
+    }
+
+    this.setAsHead = function (snakeBlock) {
+        this.head = snakeBlock;
+        this.body = [snakeBlock].concat(this.body);
+        
+    }
 
     //draw snake blocks
     this.draw = function () {
         this.body[0].draw(this.direction, 0, this.body.length);
-        for(let i = 1; i < this.body.length; i ++){
-            this.body[i].draw(this.body[i-1].direction, i, this.body.length);
+        for (let i = 1; i < this.body.length; i++) {
+            this.body[i].draw(this.body[i - 1].direction, i, this.body.length);
         }
- 
     };
 
-
-    //eat block
+    //add eating animation
     this.eat = function (block) {
-        const s = new SnakeBlock(block.x, block.y, block.w, block.h)
-        s.color = GREEN;
-        s.type = SNAKE_BLOCK;
-        s.direction = this.direction;
-        s.length = this.body.length;
-        this.body.push(s);
+        const s = new SnakeBlock(block.getX(), block.getY(), this.head.w, this.head.h, null, this.direction)
+        this.setAsHead(s)
     };
 
+    const directionMap = {
+        [UP]: { x: 0, y: -1 },
+        [DOWN]: { x: 0, y: 1 },
+        [LEFT]: { x: -1, y: 0 },
+        [RIGHT]: { x: 1, y: 0 }
+    };
 
-    //update tail to head
-    //update current head to curved body if up : 90degrees if down : 
-    this.moveLeft = function () {
+    this.moveTo = (dir) => {
         const nextHead = this.body.pop();
         const tailPos = { x: nextHead.x, y: nextHead.y };
-        nextHead.direction = LEFT;
-        this.x -= this.v;
-        nextHead.x = this.x;
-        nextHead.y = this.y;
-        this.body = [nextHead].concat(this.body);
-
+        nextHead.direction = dir;
+        const directionScalar = directionMap[dir];
+        nextHead.x = this.head.getX();
+        nextHead.y = this.head.getY();
+        nextHead.x += this.v * directionScalar.x;
+        nextHead.y += this.v * directionScalar.y;
+        this.setAsHead(nextHead);
         return tailPos;
-    };
-    this.moveRight = function () {
-        const nextHead = this.body.pop();
-        const tailPos = { x: nextHead.x, y: nextHead.y };
-        nextHead.direction = RIGHT;
-        this.x += this.v;
-        nextHead.x = this.x;
-        nextHead.y = this.y;
-        this.body = [nextHead].concat(this.body);
-        return tailPos;
+    }
 
-    };
-    this.moveUp = function () {
-        const nextHead = this.body.pop();
-        const tailPos = { x: nextHead.x, y: nextHead.y };
-        nextHead.direction = UP;
 
-        this.y -= this.v;
-        nextHead.x = this.x;
-        nextHead.y = this.y;
-        this.body = [nextHead].concat(this.body);
-        return tailPos;
-    };
-
-    this.moveDown = function () {
-        const nextHead = this.body.pop();
-        const tailPos = { x: nextHead.x, y: nextHead.y };
-        this.y += this.v;
-      
-        nextHead.direction = DOWN;
-
-        nextHead.x = this.x;
-        nextHead.y = this.y;
-        this.body = [nextHead].concat(this.body);
-        return tailPos;
-    };
 
     this.setDirection = function (dir) {
         if (!dir) return;
@@ -143,48 +127,42 @@ export default function Snake(x, y, w, h) {
             this.direction == DOWN && dir == UP) {
             return;
         }
-        this.prevDirection = this.direction;
         this.direction = dir;
     }
+
+    this.setDirection
 
     this.move = function () {
         switch (this.direction) {
             case LEFT:
-                return this.moveLeft();
             case RIGHT:
-                return this.moveRight();
             case UP:
-                return this.moveUp();
             case DOWN:
-                return this.moveDown();
+                return this.moveTo(this.direction);
         }
         return undefined;
     }
 
 
     this.draw = this.draw.bind(this);
-    this.moveLeft = this.moveLeft.bind(this);
-    this.moveRight = this.moveRight.bind(this);
-    this.moveUp = this.moveUp.bind(this);
-    this.moveDown = this.moveDown.bind(this);
 }
 
 class SnakeBlock extends Block {
-    constructor(x, y, w, h, type, color, dir) {
-        super(x, y, w, h, type, color)
+    constructor(x, y, w, h, color, dir) {
+        super(x, y, w, h, color)
         this.direction = dir;
     }
 
     draw(nextDirection, idx, len) {
-        if(idx == 0 ){
+        if (idx == 0) {
             headSprite.rotate(this.x, this.y, this.w, this.h, headSpriteAngleMap[this.direction]);
         }
-        else if (idx == len - 1 ) {
+        else if (idx == len - 1) {
             tailSprite.rotate(this.x, this.y, this.w, this.h, tailSpriteAngleMap[nextDirection]);
         }
-        else if(nextDirection == this.direction) {
+        else if (nextDirection == this.direction) {
             straightSprite.rotate(this.x, this.y, this.w, this.h, straightSpriteAngleMap[this.direction]);
-        } else if (this.direction != nextDirection ){
+        } else if (this.direction != nextDirection) {
             curvedSprite.rotate(this.x, this.y, this.w, this.h, curvedSpriteAngleMap[this.direction][nextDirection]);
         }
 

@@ -7,17 +7,22 @@ import { BLACK, RED } from './Color';
 import {
     BOT_Y_BOUNDARY, CANVAS_HEIGHT, CANVAS_WIDTH, BLOCK_HEIGHT,
     BLOCK_WIDTH, GAME_SCREEN_HEIGHT, GAME_SCREEN_WIDTH, LEFT_X_BOUNDARY,
-    REFRESH_RATE_MILLIS, RIGHT_X_BOUNDARY, TOP_Y_BOUNDARY, START_X, START_Y
+    MIN_FRAME_TIME, RIGHT_X_BOUNDARY, TOP_Y_BOUNDARY, START_X, START_Y
 } from './GameContext';
 
 
 
-//TODO generic move snake function
+//TODO Make food sprite
+
+
 
 //nice to have	
+//TODO make modal nice ( add border )
+//TODO add eating audio
 //TODO add buffer before hitting wall
-//TODO generalize premptive block check	
-//TODO have the available space map be the game grid and render it updating
+//TODO have consistently centered modal
+//TODO slow down snake for animations - think about how to force the snake to be at the center of the block
+
 
 const playModalBtn = document.getElementById('play-btn');
 const playModal = document.getElementById("play-modal");
@@ -33,11 +38,9 @@ playModalBtn.onclick = () => {
 
 
 let snake = getSnake();
-let lastTime = 0;
 const spacepbulisher = new InputPublisher('keydown', [SPACE_BAR]);
 let paused = false;
 function loop(time) {
-    if (time - lastTime > REFRESH_RATE_MILLIS) {
 
         if (spacepbulisher.getNext() === SPACE_BAR) {
             paused = !paused;
@@ -45,16 +48,14 @@ function loop(time) {
         }
 
         if (!paused) {
-            update();
-            render();
+            update(time);
             if (!snake.alive) {
                 playModal.style.visibility = "visible";
             }
-            lastTime = time;
         }
 
+    render();
 
-    }
     requestAnimationFrame(loop);
 }
 
@@ -77,7 +78,9 @@ function getAvailableSpace() {
 }
 
 const inputPublisher = new InputPublisher('keydown', [LEFT, RIGHT, DOWN, UP]);
-function update() {
+let lastTime = 0;
+
+function update(time) {
     const dir = inputPublisher.getNext();
 
     if (snake.alive) {
@@ -86,7 +89,7 @@ function update() {
         //on next frame if then after the boundary check
         snake.setDirection(dir);
 
-        boundaryCheck(snake.direction, snake.x, snake.y);
+        boundaryCheck(snake.direction, snake.getX(), snake.getY());
 
         checkIfSnakeAteSelf(snake.direction);
 
@@ -99,7 +102,11 @@ function update() {
     //and the snake shouldn't move if its dead
     if (snake.alive) {
 
-        const tailPos = snake.move();
+        let tailPos = null;
+        if(time - lastTime >= MIN_FRAME_TIME){
+            tailPos = snake.move();
+            lastTime = time;
+        }
 
         if (tailPos) {
             availableSpace[`${tailPos.x}-${tailPos.y}`] = true;
@@ -142,10 +149,10 @@ function boundaryCheck(direction, x, y) {
 }
 function checkIfSnakeAteSelf(dir) {
     for (let i = 1; i < snake.body.length; i++) {
-        if (dir == RIGHT && snake.x + BLOCK_WIDTH == snake.body[i].x && snake.y == snake.body[i].y ||
-            dir == LEFT && snake.x - BLOCK_WIDTH == snake.body[i].x && snake.y == snake.body[i].y ||
-            dir == UP && snake.y - BLOCK_WIDTH == snake.body[i].y && snake.x == snake.body[i].x ||
-            dir == DOWN && snake.y + BLOCK_WIDTH == snake.body[i].y && snake.x == snake.body[i].x
+        if (dir == RIGHT && snake.getX() + BLOCK_WIDTH == snake.body[i].getX() && snake.getY() == snake.body[i].getY() ||
+            dir == LEFT && snake.getX() - BLOCK_WIDTH == snake.body[i].getX() && snake.getY() == snake.body[i].getY() ||
+            dir == UP && snake.getY() - BLOCK_WIDTH == snake.body[i].getY() && snake.getX() == snake.body[i].getX() ||
+            dir == DOWN && snake.getY() + BLOCK_WIDTH == snake.body[i].getY() && snake.getX() == snake.body[i].getX()
         ) {
             snake.alive = false;
         }
@@ -173,16 +180,16 @@ function spawnFoodIfNone() {
         //delete from availableSpace
         delete availableSpace[`${coordinates[0]}-${coordinates[1]}`];
 
-        food.push(new Block(coordinates[0], coordinates[1], BLOCK_WIDTH, BLOCK_HEIGHT, FOOD_BLOCK, RED));
+        food.push(new Block(parseInt(coordinates[0]), parseInt(coordinates[1]), BLOCK_WIDTH, BLOCK_HEIGHT, RED));
     }
 }
 
 function checkIfAteFood(dir) {
     for (let i = 0; i < food.length; i++) {
-        if (dir == RIGHT && snake.x + BLOCK_WIDTH == food[i].x && snake.y == food[i].y ||
-            dir == LEFT && snake.x - BLOCK_WIDTH == food[i].x && snake.y == food[i].y ||
-            dir == UP && snake.y - BLOCK_WIDTH == food[i].y && snake.x == food[i].x ||
-            dir == DOWN && snake.y + BLOCK_WIDTH == food[i].y && snake.x == food[i].x
+        if (dir == RIGHT && snake.getX() + BLOCK_WIDTH == food[i].getX() && snake.getY() == food[i].getY() ||
+            dir == LEFT && snake.getX() - BLOCK_WIDTH == food[i].getX() && snake.getY() == food[i].getY() ||
+            dir == UP && snake.getY() - BLOCK_WIDTH == food[i].getY() && snake.getX() == food[i].getX() ||
+            dir == DOWN && snake.getY() + BLOCK_WIDTH == food[i].getY() && snake.getX() == food[i].getX()
         ) {
             snake.eat(food[i]);
             food = food.slice(0, i).concat(food.slice(i + 1));
