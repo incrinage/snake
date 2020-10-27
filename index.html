@@ -6,19 +6,27 @@
 
 <body>
     <div id="game-container">
+
         <div id="score-board">
-            <div id="food"> </div>
-            <div id="score"></span>
-            </div>
+            <img id="food" src="./mouse/sprites/mouse-4.png" alt="mouse">
+            <div id="score"></span></div>
             <div id="canvas-container">
                 <canvas id="canvas"></canvas>
             </div>
         </div>
         <div id="play-modal">
             <button id="play-btn" onclick="restart()">Play</button>
+            <div id="left-eye">
+                <div id="left-eye-pupil"></div>
+            </div>
+            <div id="right-eye">
+                <div id="right-eye-pupil"></div>
+            </div>
         </div>
+
     </div>
 </body>
+
 <script src="./index.js"></script>
 
 </html>

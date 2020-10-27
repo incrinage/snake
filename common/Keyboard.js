@@ -11,6 +11,8 @@ export default function InputPublisher(event, subscriptions) {
         //check for direction keys and set lastPressed
         document.addEventListener(event, function (e) {
             if(subscriptions.includes(e.key)){
+                e.preventDefault();
+
                 if(queue.getSize() < 1){
                     queue.add(e.key)
                 }

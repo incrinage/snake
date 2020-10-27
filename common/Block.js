@@ -1,5 +1,5 @@
 import { BLACK } from './Color';
-import { ctx } from './index';
+import { ctx } from '../index';
 
 //basic entity 
 export default class Block {
@@ -12,11 +12,11 @@ export default class Block {
         this.color = color || BLACK;
     }
 
-    getX(){
+    getX() {
         return this.x;
     }
 
-    getY(){
+    getY() {
         return this.y;
     }
 
@@ -28,8 +28,9 @@ export default class Block {
         ctx.strokeStyle = BLACK;
         ctx.strokeRect(this.x - 0.5, this.y - 0.5, this.w, this.h);
     };
-}
 
-export const SNAKE_BLOCK = 'snake';
-export const FOOD_BLOCK = 'food';
+    getLocation() {
+        return [{ x, y }];
+    }
+}
 

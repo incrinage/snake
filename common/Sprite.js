@@ -1,4 +1,4 @@
-import { ctx } from './index';
+import { ctx } from '../index';
 
 export default function Sprite(filename, pattern) {
     this.image = null;
