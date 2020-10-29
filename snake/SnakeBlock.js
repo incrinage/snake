@@ -22,6 +22,9 @@ export class SnakeBlock extends Block {
         } else if (this.direction != nextDirection) {
             this.curvedBody.draw(this.x, this.y, this.w, this.h, this.direction, nextDirection);
         }
+    }
 
+    getLocation(){
+      return super.getLocation();
     }
 }

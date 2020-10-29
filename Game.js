@@ -1,5 +1,5 @@
 import InputPublisher from './common/Keyboard.js';
-import Snake, { tailSprite } from './snake/Snake';
+import Snake from './snake/Snake';
 import { ctx } from './index';
 import { DOWN, LEFT, RIGHT, SPACE_BAR, UP } from './common/KeyEvent';
 import { BLACK, RED } from './common/Color';
@@ -10,21 +10,30 @@ import {
 } from './common/GameContext';
 import Mouse from './mouse/Mouse';
 import SquareBoard from './board/Board.js';
+import Meal from './common/Meal.js';
 
 
-//TODO Meal class to hold food and spawn food
 
+//Bugs
+// food spawns on snake - in progress
+// snake segments overlap                       <- velocity bug
+// snake body leaves board depending on speed   <- velocity bug
 
-//nice to have	
-//TODO fix available space , food still spawns on snake 
-//TODO snake moveTo refactor - move from head
-//TODO fix overlapping snake with low speed
-//TODO add eating audio
-//TODO refactor game class - modal class, SnakeEye class
-//TODO reset snake body completely when hit boundary , there was a bug that made the snake go outside the board when moving a certain way
-//TODO add buffer before hitting wall
-//TODO separate hit box from physical dimensions
-//TODO snake animations 2
+//Refactor
+// Modal Class 
+// have hit box as it's own object in Block (entity)
+// snake moveTo refactor 
+// keep board and avoid instantiating a new board
+
+//Notes
+// board update works for nice coordinate numbers that are multiple of the board tile dimensions
+// but doesn't take shape into account
+// write automated test
+
+//Features
+// audio
+// snake animations
+// fill the board with snake to win or eat certain amount
 
 const playModalBtn = document.getElementById('play-btn');
 const playModal = document.getElementById("play-modal");
@@ -61,13 +70,17 @@ playModalBtn.onclick = () => {
 };
 
 
+let meal = new Meal();
 
 let snake = getSnake();
-const board = new SquareBoard(50, BLOCK_WIDTH, BLOCK_HEIGHT, 0, 0);
+const board = new SquareBoard(25, BLOCK_WIDTH, BLOCK_HEIGHT, 0, 0);
 const spacepbulisher = new InputPublisher('keydown', [SPACE_BAR]);
 let paused = false;
 let gameOver = true;
+
+board.addEntity(meal);
 board.addEntity(snake);
+
 function loop(time) {
 
     if (spacepbulisher.getNext() === SPACE_BAR) {
@@ -92,32 +105,15 @@ function loop(time) {
     requestAnimationFrame(loop);
 }
 
-const availableSpace = {};
-
-function getAvailableSpace() {
-    const snakeBlockSet = {};
-    snake.body.forEach(b => {
-        const { x, y } = b;
-        snakeBlockSet[`${x}-${y}`] = true;
-    })
-
-    for (let i = LEFT_X_BOUNDARY; i < RIGHT_X_BOUNDARY; i += BLOCK_WIDTH) {
-        for (let j = TOP_Y_BOUNDARY; j < BOT_Y_BOUNDARY; j += BLOCK_HEIGHT) {
-            if (!snakeBlockSet[`${i}-${j}`]) {
-                availableSpace[`${i}-${j}`] = true;
-            }
-        }
-    }
-}
 
 const inputPublisher = new InputPublisher('keydown', [LEFT, RIGHT, DOWN, UP]);
 let lastTime = 0;
 
 function update(time) {
     const dir = inputPublisher.getNext();
-    board.update();
 
     if (snake.alive) {
+
         //need to set direction of the snake first or will die 
         //on next frame if then after the boundary check
         if (dir) {
@@ -126,34 +122,34 @@ function update(time) {
 
         boundaryCheck(snake.direction, snake.getX(), snake.getY());
 
-        checkIfSnakeAteSelf(snake.direction);
+        // checkIfSnakeAteSelf(snake.direction);
 
-        spawnFoodIfNone();
+        if (!gameOver)
+            spawnFoodIfNone();
 
         checkIfAteFood(snake.direction);
+
+        //clear board after so to acquire up to date info
+        board.update();
+
     }
 
     //second check for alive snake because previous checks could kill snake
     //and the snake shouldn't move if its dead
     if (snake.alive) {
-        let tailPos = null;
         if (time - lastTime >= MIN_FRAME_TIME && !gameOver) {
-            tailPos = snake.move();
+            snake.move();
             lastTime = time;
         }
 
-        if (tailPos) {
-            availableSpace[`${tailPos.x}-${tailPos.y}`] = true;
-            delete availableSpace[`${snake.x}-${snake.y}`];
-        }
     }
 
 }
 
 function restart() {
     gameOver = false;
-    snake = getSnake();
-    food = [];
+    snake.reset();
+    meal.reset();
     foodCount = 0;
     score.innerText = foodCount;
 }
@@ -168,13 +164,16 @@ function render() {
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     drawBorder();
     board.draw();
-    drawFood();
-    snake.draw();
+    if (!gameOver) {
+        drawFood();
+        snake.draw();
+    }
+
 }
 
 
 function drawFood() {
-    food.forEach((f) => {
+    meal.foods.forEach((f) => {
         f.draw();
     });
 }
@@ -193,7 +192,7 @@ function boundaryCheck(direction, x, y) {
         direction == DOWN && y + BLOCK_WIDTH == BOT_Y_BOUNDARY
     ) {
         if (hitWallCounter >= NUM_FRAME_BOUNDARY_PROTECTION) {
-            snake.alive = false;
+            // snake.alive = false;
         }
         snake.stop();
         hitWallCounter++;
@@ -227,8 +226,9 @@ function checkIfSnakeAteSelf(dir) {
 
 }
 
-let food = [];
 let foodCount = 0;
+
+//TODO score board class 
 const score = document.getElementById("score");
 score.innerText = foodCount;
 const scoreBoard = document.getElementById("score-board");
@@ -238,28 +238,23 @@ scoreBoard.style.height = BLOCK_HEIGHT;
 
 
 function spawnFoodIfNone() {
-    if (food.length == 0) {
-        //get entries
-        const entryKeys = Object.keys(availableSpace);
-        //random index
-        const index = Math.floor(entryKeys.length * Math.random());
-        //get entry coordinates
-        const coordinates = entryKeys[index].split('-');
-        //delete from availableSpace
-        delete availableSpace[`${coordinates[0]}-${coordinates[1]}`];
-        food.push(new Mouse(parseInt(coordinates[0]), parseInt(coordinates[1]), BLOCK_WIDTH, BLOCK_HEIGHT, RED));
+    if (meal.foods.length == 0) {
+        const locations = board.getUnocupiedLocations();
+        const randomIndex = Math.floor(Math.random() * locations.length);
+        const { x, y } = locations[randomIndex];
+        meal.foods.push(new Mouse(x, y, BLOCK_WIDTH, BLOCK_HEIGHT, RED));
     }
 }
 
 function checkIfAteFood(dir) {
-    for (let i = 0; i < food.length; i++) {
-        if (dir == RIGHT && snake.getX() + BLOCK_WIDTH == food[i].getX() && snake.getY() == food[i].getY() ||
-            dir == LEFT && snake.getX() - BLOCK_WIDTH == food[i].getX() && snake.getY() == food[i].getY() ||
-            dir == UP && snake.getY() - BLOCK_WIDTH == food[i].getY() && snake.getX() == food[i].getX() ||
-            dir == DOWN && snake.getY() + BLOCK_WIDTH == food[i].getY() && snake.getX() == food[i].getX()
+    for (let i = 0; i < meal.foods.length; i++) {
+        if (dir == RIGHT && snake.getX() + BLOCK_WIDTH == meal.foods[i].getX() && snake.getY() == meal.foods[i].getY() ||
+            dir == LEFT && snake.getX() - BLOCK_WIDTH == meal.foods[i].getX() && snake.getY() == meal.foods[i].getY() ||
+            dir == UP && snake.getY() - BLOCK_WIDTH == meal.foods[i].getY() && snake.getX() == meal.foods[i].getX() ||
+            dir == DOWN && snake.getY() + BLOCK_WIDTH == meal.foods[i].getY() && snake.getX() == meal.foods[i].getX()
         ) {
-            snake.eat(food[i]);
-            food = food.slice(0, i).concat(food.slice(i + 1));
+            snake.eat(meal.foods[i]);
+            meal.foods = meal.foods.slice(0, i).concat(meal.foods.slice(i + 1));
             foodCount++;
             score.innerText = foodCount;
         }
@@ -268,7 +263,6 @@ function checkIfAteFood(dir) {
 
 export default {
     start: function () {
-        getAvailableSpace();
         requestAnimationFrame(loop);
     }
 }

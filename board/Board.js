@@ -1,7 +1,3 @@
-import {
-    BLOCK_HEIGHT,
-    BLOCK_WIDTH, GAME_SCREEN_HEIGHT, GAME_SCREEN_WIDTH
-} from '../common/GameContext';
 import Sprite from '../common/Sprite';
 
 import DarkGrass from '../grass/sprites/dark-grass.png';
@@ -14,12 +10,14 @@ export default class SquareBoard {
 
 
 
-    board = [[]];
+
     entities = []
     constructor(squareSize, tileWidth, tileHeight) {
-        this.boardSize = squareSize;
+        this.squareSize = squareSize;
         this.tileWidth = tileWidth;
         this.tileHeight = tileHeight;
+        this.clearBoard();
+
     }
 
     addEntity(locatableEntity) {
@@ -27,13 +25,25 @@ export default class SquareBoard {
     }
 
     emptyTile(row, col) {
-        return !board[row, col];
+        return !this.board[row][col];
+    }
+
+    getUnocupiedLocations() {
+        const availableLocations = []
+        for (let i = 0; i < this.board.length; i++) {
+            for (let j = 0; j < this.board[i].length; j++) {
+                if (!this.board[i][j]) {
+                    availableLocations.push({ y: i * this.tileWidth, x: j * this.tileHeight });
+                }
+            }
+        }
+        return availableLocations;
     }
 
     drawBoard() {
         let count = 0;
-        for (let x = 0; x < this.tileWidth * this.boardSize; x += this.tileWidth) {
-            for (let y = 0; y < this.tileHeight * this.boardSize; y += this.tileHeight) {
+        for (let x = 0; x < this.tileWidth * this.squareSize; x += this.tileWidth) {
+            for (let y = 0; y < this.tileHeight * this.squareSize; y += this.tileHeight) {
                 if (count % 2 == 0) {
                     darkTileSprite.draw(x, y, this.tileWidth, this.tileHeight);
                 } else {
@@ -41,7 +51,6 @@ export default class SquareBoard {
                 }
                 count++;
             }
-            count++;
         }
     }
 
@@ -49,32 +58,29 @@ export default class SquareBoard {
         this.drawBoard();
     }
 
-    //replace with map
     update() {
-
-        this.board = [[]];
-
+        //create empty matrix
+        this.clearBoard();
         this.entities.forEach((entity, entityIdx) => {
             const entityLocation = entity.getLocation();
-
-            for (let x = 0; x < this.tileWidth * this.boardSize; x += this.tileWidth) {
-                for (let y = 0; y < this.tileHeight * this.boardSize; y += this.tileHeight) {
-                    entityLocation.forEach((location, idx) => {
-                        //check if within the bounds of x and y using tile width and tile height
-                        if (location.x >= x && location.x < x + this.tileWidth && location.y >= y && location.y < y + this.tileHeight) {
-                            //calculate x and y index in board and assign entity index;
-                            let col = (x / this.tileWidth);
-                            let row = (y / this.tileHeight);
-                            if (!this.board[row]) {
-                                this.board[row] = [];
-                            }
-                            this.board[row][col] = entityIdx;
-                        };
-                    });
+            entityLocation.forEach((location) => {
+                const { x, y } = location;
+                let col = (x / this.tileWidth);
+                let row = (y / this.tileHeight);
+                if (!this.board[row]) {
+                    this.board[row] = [];
                 }
-                //validate that they are valid coordinates?
-            }
+                this.board[row][col] = entityIdx;
+            });
+
         });
+    }
+
+    clearBoard() {
+        this.board = new Array(this.squareSize);
+        for (let i = 0; i < this.squareSize; i++) {
+            this.board[i] = new Array(this.squareSize);
+        }
     }
 }
 

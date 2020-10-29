@@ -12,4 +12,8 @@ export default class Mouse extends Block {
     draw() {
         this.mouseSprite.draw(this.x, this.y, this.w, this.h);
     }
+
+    getLocation(){
+        return super.getLocation();
+    }
 }

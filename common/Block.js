@@ -30,7 +30,7 @@ export default class Block {
     };
 
     getLocation() {
-        return [{ x, y }];
+        return [{ x: this.x, y: this.y }];
     }
 }
 
