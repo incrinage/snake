@@ -19,7 +19,7 @@ import Meal from './common/Meal.js';
 // snake body leaves board depending on speed   <- velocity bug
 
 //Refactor
-// Modal Class 
+// Modal Class <- in progress
 // have hit box as it's own object in Block (entity)
 // snake moveTo refactor 
 // keep board and avoid instantiating a new board
@@ -121,7 +121,7 @@ function update(time) {
 
         boundaryCheck(snake.direction, snake.getX(), snake.getY());
 
-        // checkIfSnakeAteSelf(snake.direction);
+        checkIfSnakeAteSelf(snake.direction);
 
         if (!gameOver)
             spawnFoodIfNone();
@@ -191,7 +191,7 @@ function boundaryCheck(direction, x, y) {
         direction == DOWN && y + BLOCK_WIDTH == BOT_Y_BOUNDARY
     ) {
         if (hitWallCounter >= NUM_FRAME_BOUNDARY_PROTECTION) {
-            // snake.alive = false;
+            snake.alive = false;
         }
         snake.stop();
         hitWallCounter++;
