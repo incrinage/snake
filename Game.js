@@ -15,7 +15,6 @@ import Meal from './common/Meal.js';
 
 
 //Bugs
-// food spawns on snake - in progress
 // snake segments overlap                       <- velocity bug
 // snake body leaves board depending on speed   <- velocity bug
 
