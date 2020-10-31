@@ -17,5 +17,5 @@ parcel index.html
 
 
 
-![alt Snake](https://github.com/incrinage/snake/blob/main/snake.PNG)
+![alt Snake](https://github.com/incrinage/snake/blob/snake/sprites/snake.PNG)
 
