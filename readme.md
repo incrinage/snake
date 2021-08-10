@@ -7,6 +7,7 @@ The classic snake game
 Use parcel.js to bundle application
 
 ```bash
+npm install
 parcel index.html
 ```
 
@@ -17,5 +18,5 @@ parcel index.html
 
 
 
-![alt Snake](https://github.com/incrinage/snake/blob/snake/sprites/snake.PNG)
+![alt Snake](https://github.com/incrinage/snake/blob/main/snake.png)
 
